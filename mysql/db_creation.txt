@@ -1,0 +1,38 @@
+CREATE DATABASE carreraCaballo;
+
+USE carreraCaballo;
+
+CREATE TABLE jugador (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    mail VARCHAR(100) NOT NULL,
+    puntaje INT DEFAULT 0
+);
+INSERT INTO caballo (nombre, velocidad_base, resistencia, energia_actual, distancia_recorrida, perfil) VALUES
+('Relámpago',   10.0,  60.0,  60.0,  0.0, 'Veloz'),
+('Tormenta',     6.0, 100.0, 100.0,  0.0, 'Resistente'),
+('Centella',     9.0,  85.0,  85.0,  0.0, 'Equilibrado'),
+('Trueno',       8.5,  90.0,  90.0,  0.0, 'Equilibrado'),
+('Vendaval',    11.0,  50.0,  50.0,  0.0, 'Veloz'),
+('Tempestad',    7.5,  95.0,  95.0,  0.0, 'Resistente'),
+('Huracán',      9.5,  75.0,  75.0,  0.0, 'Equilibrado');
+ 
+CREATE TABLE caballo (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    velocidad_base DOUBLE,
+    resistencia DOUBLE,
+    energia_actual DOUBLE,
+    distancia_recorrida DOUBLE,
+    perfil VARCHAR(50)
+);
+
+CREATE TABLE carrera (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    distancia_total DOUBLE,
+    finalizada BOOLEAN
+);
+show DATABASES;
+SHOW tables;
+SELECT * FROM jugador;
+TRUNCATE TABLE jugador;
