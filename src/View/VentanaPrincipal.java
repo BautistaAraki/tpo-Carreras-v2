@@ -15,12 +15,12 @@ import java.util.List;
  
 public class VentanaPrincipal extends JFrame {
  
-    // ── controladores y repositorio ──────────────────────────
+    
     private ControllerJugador controllerJugador;
     private controllerCarrera  ctrlCarrera;
     private caballorepositorio repoCaballo;
  
-    // ── campos de la UI ──────────────────────────────────────
+    
     private JTextField txtNombre;
     private JTextField txtMail;
     private JList<String> listaCaballos;
@@ -33,7 +33,7 @@ public class VentanaPrincipal extends JFrame {
  
     private List<Caballo> caballosDisponibles;
  
-    // ── paleta ───────────────────────────────────────────────
+   
     private static final Color C_BG      = new Color(15,  15,  20);
     private static final Color C_PANEL   = new Color(25,  25,  35);
     private static final Color C_CARD    = new Color(35,  35,  50);
@@ -52,7 +52,7 @@ public class VentanaPrincipal extends JFrame {
         cargarCaballos();
     }
 
-    // Constructor con jugador existente — para cuando vuelve del menu
+  
     public VentanaPrincipal(ControllerJugador jugadorExistente) {
         controllerJugador = jugadorExistente;
         ctrlCarrera       = new controllerCarrera();
@@ -73,9 +73,7 @@ public class VentanaPrincipal extends JFrame {
     
     
  
-    // ════════════════════════════════════════════════════════
-    //  Configuración base
-    // ════════════════════════════════════════════════════════
+   
     private void configurarVentana() {
         setTitle("🏇 Sistema de Carreras");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -85,9 +83,7 @@ public class VentanaPrincipal extends JFrame {
         getContentPane().setBackground(C_BG);
     }
  
-    // ════════════════════════════════════════════════════════
-    //  Construcción de la interfaz
-    // ════════════════════════════════════════════════════════
+
     private void construirUI() {
         setLayout(new BorderLayout(0, 0));
         add(crearHeader(), BorderLayout.NORTH);
@@ -95,7 +91,6 @@ public class VentanaPrincipal extends JFrame {
         add(crearFooter(), BorderLayout.SOUTH);
     }
  
-    // ── Header ───────────────────────────────────────────────
     private JPanel crearHeader() {
         JPanel header = new JPanel(new BorderLayout()) {
             @Override protected void paintComponent(Graphics g) {
@@ -125,7 +120,7 @@ public class VentanaPrincipal extends JFrame {
         return header;
     }
  
-    // ── Cuerpo principal ─────────────────────────────────────
+   
     private JPanel crearCuerpo() {
         JPanel cuerpo = new JPanel(new GridLayout(1, 2, 12, 0));
         cuerpo.setBackground(C_BG);
@@ -136,7 +131,7 @@ public class VentanaPrincipal extends JFrame {
         return cuerpo;
     }
  
-    // ── Panel izquierdo: datos del jugador ───────────────────
+  
     private JPanel crearPanelJugador() {
         JPanel panel = crearCard("JUGADOR");
  
@@ -193,7 +188,7 @@ public class VentanaPrincipal extends JFrame {
         return panel;
     }
  
-    // ── Panel derecho: lista de caballos ─────────────────────
+  
     private JPanel crearPanelCaballos() {
         JPanel panel = crearCard("CABALLOS");
         panel.setLayout(new BorderLayout(0, 8));
@@ -237,7 +232,7 @@ public class VentanaPrincipal extends JFrame {
         return panel;
     }
  
-    // ── Footer ───────────────────────────────────────────────
+    
     private JPanel crearFooter() {
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.CENTER));
         footer.setBackground(new Color(20,15,5));
@@ -249,9 +244,7 @@ public class VentanaPrincipal extends JFrame {
         return footer;
     }
  
-    // ════════════════════════════════════════════════════════
-    //  Acciones
-    // ════════════════════════════════════════════════════════
+   
     private void accionCrearJugador() {
         String nombre = txtNombre.getText().trim();
         String mail   = txtMail.getText().trim();
@@ -260,7 +253,11 @@ public class VentanaPrincipal extends JFrame {
             mostrarError("Completá nombre y mail para continuar.");
             return;
         }
- 
+
+        if (!mail.contains("@") || !mail.contains(".com")) {
+            mostrarError("El mail debe contener @ y .com");
+            return;
+        }
         JugadorDTO dto = new JugadorDTO(nombre, mail, 0);
         controllerJugador.crearJugador(dto);
  
@@ -342,8 +339,8 @@ public class VentanaPrincipal extends JFrame {
         areaInfoCaballo.setText(
             "  Nombre    : " + c.getNombre()        + "\n" +
             "  Perfil     : " + c.getperfil()        + "\n" +
-            "  Velocidad  : " + c.getVelocidadBase() + "\n" +
-            "  Resistencia: " + c.getResistencia()   + "\n"
+            "  Velocidad  : " + String.format("%.2f", c.getVelocidadBase()) + "\n" +
+            "  Resistencia: " + String.format("%.2f", c.getResistencia())   + "\n"
         );
  
         verificarHabilitacionInicio();
@@ -356,13 +353,13 @@ public class VentanaPrincipal extends JFrame {
             return;
         }
  
-        // ── Clonar caballos para que cada carrera arranque fresca ──
+        
         List<Caballo> copias = new ArrayList<>();
         for (Caballo c : caballosDisponibles) {
             copias.add(c.clonar());
         }
  
-        // El caballo del jugador debe ser la copia, no el original
+        
         Caballo caballoCopia = null;
         for (Caballo c : copias) {
             if (c.getNombre().equals(caballoJugador.getNombre())) {
@@ -391,9 +388,7 @@ public class VentanaPrincipal extends JFrame {
         setVisible(false);
     }
  
-    // ════════════════════════════════════════════════════════
-    //  Helpers UI
-    // ════════════════════════════════════════════════════════
+    
     private void verificarHabilitacionInicio() {
         boolean jugadorCreado  = controllerJugador.obtenerNombreJugador() != null
                                  && !controllerJugador.obtenerNombreJugador().isEmpty();
@@ -485,9 +480,7 @@ public class VentanaPrincipal extends JFrame {
             JOptionPane.WARNING_MESSAGE);
     }
  
-    // ════════════════════════════════════════════════════════
-    //  main
-    // ════════════════════════════════════════════════════════
+   
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(
