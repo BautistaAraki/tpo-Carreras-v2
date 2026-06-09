@@ -33,27 +33,43 @@ public class Caballo {
 	    );
 	}
 	public void avanzar() {
-		   if (energiaActual > 0) {
+		    if (energiaActual > 0) {
 
-			   Double avance = velocidadBase * (energiaActual / resistencia) ;
-		        distanciaRecorrida =
-		                distanciaRecorrida + avance;
+		        double random = 0.7 + (Math.random() * 0.6);
+
+		        Double avance = velocidadBase 
+		            * (energiaActual / resistencia) 
+		            * random;
+
+		        distanciaRecorrida = distanciaRecorrida + avance;
 
 		        disminuirEnergia();
 		    }
-	}
+		}
 	public void disminuirEnergia() {
-		 energiaActual = energiaActual - 0.5;
+		energiaActual = energiaActual - 0.5;
 
-		    if (energiaActual < 0) {
-		        energiaActual = 0.0;
-		    }
-		    resistencia = resistencia - 0.1;
-		    if (resistencia < 1.0) {
-		        resistencia = 1.0; // mínimo para evitar división por cero
-		    }
-			
-		    
+	    if (energiaActual < 0) {
+	        energiaActual = 0.0;
+	    }
+	    resistencia = resistencia - 0.1;
+	    if (resistencia < 1.0) {
+	        resistencia = 1.0; 
+	    }
+		
+	    
+	}
+	public void aplicarDesgasteEntreCarreras() {
+	    
+	    resistencia = resistencia - 5.0;
+	    if (resistencia < 10.0) {
+	        resistencia = 10.0; 
+	    }
+
+	    velocidadBase = velocidadBase - 0.5;
+	    if (velocidadBase < 2.0) {
+	        velocidadBase = 2.0;
+	    }
 	}
 	public void ReinciarAtributos() {
 		energiaActual=resistencia;
@@ -82,3 +98,4 @@ public class Caballo {
 		
 		
 }
+
