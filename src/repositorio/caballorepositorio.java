@@ -115,6 +115,31 @@ public class caballorepositorio {
 
 	        return caballos;
 	    }
+	    public void actualizar(Caballo caballo) {
+	    	try {
+	            Connection con = conexionDB.obtenerConexion();
+
+	            String sql = "UPDATE caballo SET " +
+	                         "energia_actual = ?, " +
+	                         "distancia_recorrida = ?, " +
+	                         "resistencia = ?, " +
+	                         "velocidad_base = ? " +  
+	                         "WHERE nombre = ?";
+
+	            PreparedStatement ps = con.prepareStatement(sql);
+	            ps.setDouble(1, caballo.getEnergiaActual());
+	            ps.setDouble(2, caballo.getDistanciaRecorrida());
+	            ps.setDouble(3, caballo.getResistencia());
+	            ps.setDouble(4, caballo.getVelocidadBase());  
+	            ps.setString(5, caballo.getNombre());
+
+	            ps.executeUpdate();
+
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }
+	    	
 }
 
 	    
