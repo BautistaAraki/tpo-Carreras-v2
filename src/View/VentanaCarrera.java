@@ -14,30 +14,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * VentanaCarrera — Vista MVC
- * Muestra la animación de la carrera usando javax.swing.Timer.
- * Se comunica SOLO con controllerCarrera y ControllerJugador (nunca con el Modelo directamente).
- */
+import repositorio.carrerarepositorio;
+import repositorio.jugadorrepositorio;
+import repositorio.caballorepositorio; 
 public class VentanaCarrera extends JFrame {
 
-    // ── controladores ────────────────────────────────────────
+    
     private controllerCarrera  ctrlCarrera;
     private ControllerJugador  ctrlJugador;
 
-    // ── repositorios (para persistir al finalizar) ───────────
+   
     private carrerarepositorio repoCarrera;
     private jugadorrepositorio repoJugador;
+    private caballorepositorio repoCaballo; 
 
-    // ── datos de carrera ─────────────────────────────────────
+    
     private double distanciaTotal;
     private List<Caballo> caballos;
-
-    // ── animación ────────────────────────────────────────────
+    
     private Timer timer;
     private static final int DELAY_MS = 90;  
 
-    // ── UI ───────────────────────────────────────────────────
     private PistaPanel pistaPanel;
     private JLabel     lblEstado;
     private JLabel     lblGanador;
@@ -45,7 +42,7 @@ public class VentanaCarrera extends JFrame {
     private JButton    btnVolver;
     private JButton    btnReiniciar;
 
-    // ── colores ──────────────────────────────────────────────
+    
     private static final Color C_BG      = new Color(10, 20, 10);
     private static final Color C_PANEL   = new Color(18, 32, 18);
     private static final Color C_CARD    = new Color(25, 42, 25);
@@ -56,7 +53,7 @@ public class VentanaCarrera extends JFrame {
     private static final Color C_GREEN   = new Color(80, 200, 120);
     private static final Color C_RED     = new Color(220, 80, 80);
 
-    // Colores para cada carril de caballo
+    
     private static final Color[] HORSE_COLORS = {
         new Color(220, 160, 50),
         new Color(80,  160, 220),
@@ -65,9 +62,7 @@ public class VentanaCarrera extends JFrame {
         new Color(180, 80,  200)
     };
 
-    // ════════════════════════════════════════════════════════
-    //  Constructor
-    // ════════════════════════════════════════════════════════
+    
     public VentanaCarrera(
             controllerCarrera ctrlCarrera,
             ControllerJugador ctrlJugador,
@@ -81,15 +76,14 @@ public class VentanaCarrera extends JFrame {
 
         repoCarrera = new carrerarepositorio();
         repoJugador = new jugadorrepositorio();
+        repoCaballo = new caballorepositorio();
 
         configurarVentana();
         construirUI();
         iniciarAnimacion();
     }
 
-    // ════════════════════════════════════════════════════════
-    //  Configuración
-    // ════════════════════════════════════════════════════════
+    
     private void configurarVentana() {
         setTitle("🏁 Carrera en curso");
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -106,9 +100,7 @@ public class VentanaCarrera extends JFrame {
         });
     }
 
-    // ════════════════════════════════════════════════════════
-    //  UI
-    // ════════════════════════════════════════════════════════
+    
     private void construirUI() {
         setLayout(new BorderLayout(0, 0));
         add(crearHeader(),  BorderLayout.NORTH);
@@ -149,7 +141,7 @@ public class VentanaCarrera extends JFrame {
         pistaPanel = new PistaPanel();
         contenedor.add(pistaPanel, BorderLayout.CENTER);
 
-        // Panel lateral con info de posiciones
+        
         contenedor.add(crearPanelPosiciones(), BorderLayout.EAST);
 
         return contenedor;
@@ -186,7 +178,7 @@ public class VentanaCarrera extends JFrame {
 
         p.add(Box.createVerticalGlue());
 
-        // Labels de resultado (ocultos hasta el final)
+        
         lblGanador = new JLabel(" ");
         lblGanador.setForeground(C_ACCENT);
         lblGanador.setFont(new Font("Monospaced", Font.BOLD, 11));
@@ -223,17 +215,14 @@ public class VentanaCarrera extends JFrame {
         return footer;
     }
 
-    // ════════════════════════════════════════════════════════
-    //  Animación con Timer
-    // ════════════════════════════════════════════════════════
+    
     private void iniciarAnimacion() {
         timer = new Timer(DELAY_MS, e -> tick());
         timer.start();
     }
 
     private void tick() {
-        // 1. Pedir al controlador que simule un turno
-        ctrlCarrera.simularTurno();
+                ctrlCarrera.simularTurno();
         
         for (Caballo c : ctrlCarrera.obtenerCaballos()) {
             System.out.println(c.getNombre() + 
@@ -244,10 +233,10 @@ public class VentanaCarrera extends JFrame {
         System.out.println("---");
         pistaPanel.repaint();
 
-        // 3. Actualizar labels de posición en el panel lateral
+        
         actualizarPosiciones();
 
-        // 4. Verificar si terminó
+        
         if (ctrlCarrera.carreraFinalizada()) {
             timer.stop();
             finalizarCarrera();
@@ -255,7 +244,7 @@ public class VentanaCarrera extends JFrame {
     }
 
     private void actualizarPosiciones() {
-        // Actualizar cada label de posición
+        
         Container panelPos = (Container) ((BorderLayout) ((JPanel) getContentPane()
             .getComponent(1)).getLayout())
             .getLayoutComponent(BorderLayout.EAST);
@@ -279,13 +268,13 @@ public class VentanaCarrera extends JFrame {
     }
 
     private void finalizarCarrera() {
-        Caballo ganador = ctrlCarrera.obtenerGanador();
-        int puntaje     = ctrlCarrera.calcularPuntajeJugador();
+    	Caballo ganador   = ctrlCarrera.obtenerGanador();
+        int puntaje       = ctrlCarrera.calcularPuntajeJugador();
 
-        // Sumar puntaje al jugador
+        
         ctrlJugador.getJugador().sumarPuntos(puntaje);
 
-        // Persistir
+       
         try {
             repoCarrera.guardar(ctrlCarrera.getCarrera());
             repoJugador.guardarJugador(ctrlJugador.getJugador());
@@ -293,41 +282,77 @@ public class VentanaCarrera extends JFrame {
             ex.printStackTrace();
         }
 
-        // Actualizar UI
+        try {
+            repoCarrera.guardar(ctrlCarrera.getCarrera());
+            repoJugador.guardarJugador(ctrlJugador.getJugador());
+
+           
+            for (Caballo c : ctrlCarrera.obtenerCaballos()) {
+                repoCaballo.actualizar(c);
+            }
+            for (Caballo c : caballos) {
+                c.aplicarDesgasteEntreCarreras();
+                repoCaballo.actualizar(c);
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
         lblEstado.setText("FINALIZADA  ");
         lblEstado.setForeground(C_ACCENT);
-
         lblGanador.setText("🏆 " + (ganador != null ? ganador.getNombre() : "?"));
         lblPuntaje.setText("+" + puntaje + " pts  →  "
             + ctrlJugador.obtenerPuntaje() + " total");
-
         btnReiniciar.setEnabled(true);
 
-        // Diálogo de resultado
-        String jugadorCaballo = ctrlJugador.obtenerCaballoSeleccionado() != null
-            ? ctrlJugador.obtenerCaballoSeleccionado().getNombre() : "?";
+       
+        Caballo caballoJugador = ctrlJugador.obtenerCaballoSeleccionado();
+        String nombreCaballo   = caballoJugador != null ? caballoJugador.getNombre() : "?";
+        boolean empato         = puntaje == 75;
+        boolean gano           = puntaje == 100;
 
-        boolean gano = ganador != null &&
-            ganador.equals(ctrlJugador.obtenerCaballoSeleccionado());
+        String titulo;
+        String mensaje;
 
-        String mensaje = (gano ? "🏆 ¡GANASTE!\n" : "😔 Tu caballo no ganó esta vez.\n")
-            + "\nGanador: " + (ganador != null ? ganador.getNombre() : "?")
-            + "\nTu caballo: " + jugadorCaballo
-            + "\nPuntos obtenidos: +" + puntaje
-            + "\nPuntaje total: " + ctrlJugador.obtenerPuntaje();
+        if (empato) {
+            titulo  = "¡Empate!";
+            mensaje = "¡EMPATE!\n"
+                    + "\nTu caballo llegó al mismo tiempo que otro."
+                    + "\nPuntos obtenidos: +" + puntaje
+                    + "\nPuntaje total: " + ctrlJugador.obtenerPuntaje();
+        } else if (gano) {
+            titulo  = "¡Victoria!";
+            mensaje = "¡GANASTE!\n"
+                    + "\nGanador: " + (ganador != null ? ganador.getNombre() : "?")
+                    + "\nTu caballo: " + nombreCaballo
+                    + "\nPuntos obtenidos: +" + puntaje
+                    + "\nPuntaje total: " + ctrlJugador.obtenerPuntaje();
+        } else {
+            titulo  = "Resultado final";
+            mensaje = "Tu caballo no ganó esta vez.\n"
+                    + "\nGanador: " + (ganador != null ? ganador.getNombre() : "?")
+                    + "\nTu caballo: " + nombreCaballo
+                    + "\nPuntos obtenidos: +" + puntaje
+                    + "\nPuntaje total: " + ctrlJugador.obtenerPuntaje();
+        }
 
-        JOptionPane.showMessageDialog(this, mensaje,
-            gano ? "¡Victoria!" : "Resultado final",
-            gano ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.PLAIN_MESSAGE);
+        
+        SwingUtilities.invokeLater(() -> {
+            JOptionPane.showMessageDialog(
+                this,
+                mensaje,
+                titulo,
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        });
 
         pistaPanel.repaint();
     }
+        	
 
-    // ════════════════════════════════════════════════════════
-    //  Acciones de botones
-    // ════════════════════════════════════════════════════════
+   
     private void accionNuevaCarrera() {
-        // Reiniciar carrera con los mismos caballos
+       
         ctrlCarrera.crearCarrera(
             distanciaTotal,
             caballos,
@@ -350,9 +375,7 @@ public class VentanaCarrera extends JFrame {
         new VentanaPrincipal(ctrlJugador).setVisible(true);
     }
 
-    // ════════════════════════════════════════════════════════
-    //  Helpers
-    // ════════════════════════════════════════════════════════
+    
     private String labelCaballo(Caballo c, boolean esJugador) {
         double pct = Math.min(100.0,
             (c.getDistanciaRecorrida() / distanciaTotal) * 100);
@@ -376,9 +399,7 @@ public class VentanaCarrera extends JFrame {
         return b;
     }
 
-    // ════════════════════════════════════════════════════════
-    //  Panel de la pista (pintado manual)
-    // ════════════════════════════════════════════════════════
+    
     private class PistaPanel extends JPanel {
 
         private static final int MARGEN_IZQ  = 100;
@@ -402,10 +423,10 @@ public class VentanaCarrera extends JFrame {
             int h = getHeight();
             int n = caballos.size();
 
-            // Fondo de hierba con líneas
+          
             dibujarFondo(g2, w, h, n);
 
-            // Línea de meta
+            
             int xMeta = w - MARGEN_DER;
             g2.setColor(C_RED);
             g2.setStroke(new BasicStroke(3, BasicStroke.CAP_BUTT,
@@ -413,12 +434,12 @@ public class VentanaCarrera extends JFrame {
             g2.drawLine(xMeta, 0, xMeta, h);
             g2.setStroke(new BasicStroke(1));
 
-            // Etiqueta META
+            
             g2.setColor(C_RED);
             g2.setFont(new Font("Monospaced", Font.BOLD, 11));
             g2.drawString("META", xMeta - 18, 14);
 
-            // Dibujar cada caballo
+            
             int pistasAncho = w - MARGEN_IZQ - MARGEN_DER;
             for (int i = 0; i < n; i++) {
                 Caballo c = caballos.get(i);
@@ -434,7 +455,7 @@ public class VentanaCarrera extends JFrame {
                 dibujarCaballo(g2, cx, cy, color, c.getNombre(), esJugador);
             }
 
-            // Nombre de jugador a la izquierda
+          
             g2.setFont(new Font("Monospaced", Font.PLAIN, 10));
             for (int i = 0; i < n; i++) {
                 Caballo c = caballos.get(i);
@@ -456,12 +477,11 @@ public class VentanaCarrera extends JFrame {
                 int y = PAD_VERT + i * ALTO_CARRIL;
                 g2.fillRect(0, y, w, ALTO_CARRIL);
 
-                // Línea divisoria de carril
                 g2.setColor(new Color(50, 80, 50));
                 g2.drawLine(0, y, w, y);
             }
 
-            // Línea de largada
+            
             g2.setColor(C_ACCENT2);
             g2.setStroke(new BasicStroke(2));
             g2.drawLine(MARGEN_IZQ, 0, MARGEN_IZQ, h);
@@ -477,36 +497,36 @@ public class VentanaCarrera extends JFrame {
 
             
             g2.setColor(color);
-            // Cuerpo
+            
             g2.fillOval(cx - 18, cy - 10, 36, 20);
-            // Cabeza
+            
             g2.fillOval(cx + 14, cy - 14, 16, 14);
-            // Cuello
+            
             g2.fillRect(cx + 12, cy - 10, 6, 10);
-            // Patas (4 rectángulos)
+            
             g2.fillRect(cx - 12, cy + 8, 5, 10);
             g2.fillRect(cx - 2,  cy + 8, 5, 10);
             g2.fillRect(cx + 8,  cy + 8, 5, 10);
             g2.fillRect(cx + 17, cy + 6, 5, 10);
-            // Cola
+            
             g2.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             g2.drawArc(cx - 26, cy - 8, 14, 16, 270, 180);
             g2.setStroke(new BasicStroke(1));
 
-            // Contorno si es el caballo del jugador
+           
             if (esJugador) {
                 g2.setColor(C_ACCENT);
                 g2.setStroke(new BasicStroke(2));
                 g2.drawOval(cx - 19, cy - 11, 38, 22);
                 g2.setStroke(new BasicStroke(1));
 
-                // Estrella encima
+               
                 g2.setFont(new Font("Dialog", Font.PLAIN, 14));
                 g2.drawString("★", cx - 6, cy - 16);
             }
 
-            // Energía (barra pequeña)
-            // (se puede leer de c, pero por simplicidad omitimos getter de energía aquí)
+            
         }
     }
 }
+
