@@ -68,15 +68,32 @@ public class Carrera {
 
     public int calcularPuntajeJugador() {
 
-        Caballo ganador = determinarGanador();
+        double maxDistancia = 0;
+        for (Caballo c : caballoParticipantes) {
+            if (c.getDistanciaRecorrida() > maxDistancia) {
+                maxDistancia = c.getDistanciaRecorrida();
+            }
+        }
 
-        if (jugadorParticipante.getcaballoseleccionado()
-                .equals(ganador)) {
+       
+        int empatados = 0;
+        for (Caballo c : caballoParticipantes) {
+            if (c.getDistanciaRecorrida() == maxDistancia) {
+                empatados++;
+            }
+        }
 
+        Caballo caballoJugador = jugadorParticipante.getcaballoseleccionado();
+
+        
+        if (caballoJugador.getDistanciaRecorrida() == maxDistancia) {
+            if (empatados > 1) {
+                return 75; 
+            }
             return 100;
         }
 
-        return 10;
+        return 10; 
     }
 
     public List<Caballo> getCaballosParticipantes() {
@@ -93,6 +110,6 @@ public class Carrera {
     public jugador getJugadorParticipante() {
         return jugadorParticipante;
     }
-	
+		
 
 }
