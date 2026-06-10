@@ -1,8 +1,10 @@
 package Modelo1;
+
 import java.util.List;
 import java.util.Date;
 
-public class Carrera {
+public class Carrera implements ICarrera{
+	private IPerfilCaballo estrategiaPerfil;
 	private Double distanciaTotal;
 	private Boolean finalizada;
 	private List<Caballo> caballoParticipantes;
@@ -110,6 +112,6 @@ public class Carrera {
     public jugador getJugadorParticipante() {
         return jugadorParticipante;
     }
-		
+	
 
 }
