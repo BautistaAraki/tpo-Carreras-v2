@@ -7,7 +7,7 @@ import java.util.List;
 
 import Modelo1.Caballo;
 import database.conexionDB;
-public class caballorepositorio {
+public class caballorepositorio implements ICaballoRepositorio {
 
 	    public void guardar(Caballo caballo) {
 
@@ -123,14 +123,14 @@ public class caballorepositorio {
 	                         "energia_actual = ?, " +
 	                         "distancia_recorrida = ?, " +
 	                         "resistencia = ?, " +
-	                         "velocidad_base = ? " +  
+	                         "velocidad_base = ? " +  // ← agregá este campo
 	                         "WHERE nombre = ?";
 
 	            PreparedStatement ps = con.prepareStatement(sql);
 	            ps.setDouble(1, caballo.getEnergiaActual());
 	            ps.setDouble(2, caballo.getDistanciaRecorrida());
 	            ps.setDouble(3, caballo.getResistencia());
-	            ps.setDouble(4, caballo.getVelocidadBase());  
+	            ps.setDouble(4, caballo.getVelocidadBase());  // ← y este setter
 	            ps.setString(5, caballo.getNombre());
 
 	            ps.executeUpdate();
@@ -141,5 +141,8 @@ public class caballorepositorio {
 	    }
 	    	
 }
+
+	    
+
 
 	    
