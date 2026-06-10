@@ -1,148 +1,119 @@
 package repositorio;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import Modelo1.Caballo;
+import Modelo1.jugador;
 import database.conexionDB;
-public class caballorepositorio implements ICaballoRepositorio {
 
-	    public void guardar(Caballo caballo) {
+public class jugadorrepositorio  implements IJugadorRepositorio{
 
-	        try {
+    public void guardarJugador(jugador jugador) {
 
-	            Connection con = conexionDB.obtenerConexion();
+        try {
 
-	            String sql =
-	            "INSERT INTO caballo(nombre, velocidad_base, resistencia, energia_actual, distancia_recorrida, perfil) VALUES (?, ?, ?, ?, ?, ?)";
+            Connection con =
+                    conexionDB.obtenerConexion();
 
-	            PreparedStatement ps =
-	                    con.prepareStatement(sql);
+            String sql =
+                    "INSERT INTO jugador(nombre, mail, puntaje) VALUES (?, ?, ?)";
 
-	            ps.setString(1, caballo.getNombre());
-	            ps.setDouble(2, caballo.getVelocidadBase());
-	            ps.setDouble(3, caballo.getResistencia());
-	            ps.setDouble(4, caballo.getEnergiaActual());
-	            ps.setDouble(5, caballo.getDistanciaRecorrida());
-	            ps.setString(6, caballo.getperfil());
+            PreparedStatement ps =
+                    con.prepareStatement(sql);
 
-	            ps.executeUpdate();
+            ps.setString(1, jugador.getnombre());
+            ps.setString(2, jugador.getmail());
+            ps.setInt(3, jugador.getPuntaje());
 
-	        } catch (Exception e) {
+            ps.executeUpdate();
 
-	            e.printStackTrace();
+            System.out.println("Jugador guardado correctamente");
 
-	        }
-	    }
+        } catch (Exception e) {
 
-	    public Caballo buscarPorNombre(String nombre) {
+            e.printStackTrace();
 
-	        Caballo caballo = null;
+        }
+    }
 
-	        try {
+    public jugador buscarPorMail(String mail) {
 
-	            Connection con = conexionDB.obtenerConexion();
+        jugador jugadorEncontrado = null;
 
-	            String sql =
-	                    "SELECT * FROM caballo WHERE nombre = ?";
+        try {
 
-	            PreparedStatement ps =
-	                    con.prepareStatement(sql);
+            Connection con =
+                    conexionDB.obtenerConexion();
 
-	            ps.setString(1, nombre);
+            String sql =
+                    "SELECT * FROM jugador WHERE mail = ?";
 
-	            ResultSet rs = ps.executeQuery();
+            PreparedStatement ps =
+                    con.prepareStatement(sql);
 
-	            if (rs.next()) {
+            ps.setString(1, mail);
 
-	                caballo = new Caballo(
-	                        rs.getString("nombre"),
-	                        rs.getDouble("velocidad_base"),
-	                        rs.getDouble("resistencia"),
-	                        rs.getDouble("energia_actual"),
-	                        rs.getDouble("distancia_recorrida"),
-	                        rs.getString("perfil")
-	                );
-	            }
+            ResultSet rs =
+                    ps.executeQuery();
 
-	        } catch (Exception e) {
+            if (rs.next()) {
 
-	            e.printStackTrace();
+                jugadorEncontrado =
+                        new jugador(
+                                rs.getString("nombre"),
+                                rs.getString("mail")
+                        );
 
-	        }
+            }
 
-	        return caballo;
-	    }
+        } catch (Exception e) {
 
-	    public List<Caballo> listarTodos() {
+            e.printStackTrace();
 
-	        List<Caballo> caballos =
-	                new ArrayList<>();
+        }
 
-	        try {
+        return jugadorEncontrado;
+    }
 
-	            Connection con = conexionDB.obtenerConexion();
+    public List<jugador> listarTodos() {
 
-	            String sql = "SELECT * FROM caballo";
+        List<jugador> jugadores =
+                new ArrayList<>();
 
-	            PreparedStatement ps =
-	                    con.prepareStatement(sql);
+        try {
 
-	            ResultSet rs =
-	                    ps.executeQuery();
+            Connection con =
+                    conexionDB.obtenerConexion();
 
-	            while (rs.next()) {
+            String sql =
+                    "SELECT * FROM jugador";
 
-	                Caballo caballo = new Caballo(
-	                        rs.getString("nombre"),
-	                        rs.getDouble("velocidad_base"),
-	                        rs.getDouble("resistencia"),
-	                        rs.getDouble("energia_actual"),
-	                        rs.getDouble("distancia_recorrida"),
-	                        rs.getString("perfil")
-	                );
+            PreparedStatement ps =
+                    con.prepareStatement(sql);
 
-	                caballos.add(caballo);
-	            }
+            ResultSet rs =
+                    ps.executeQuery();
 
-	        } catch (Exception e) {
+            while (rs.next()) {
 
-	            e.printStackTrace();
+                jugador jugador =
+                        new jugador(
+                                rs.getString("nombre"),
+                                rs.getString("mail")
+                        );
 
-	        }
+                jugadores.add(jugador);
+            }
 
-	        return caballos;
-	    }
-	    public void actualizar(Caballo caballo) {
-	    	try {
-	            Connection con = conexionDB.obtenerConexion();
+        } catch (Exception e) {
 
-	            String sql = "UPDATE caballo SET " +
-	                         "energia_actual = ?, " +
-	                         "distancia_recorrida = ?, " +
-	                         "resistencia = ?, " +
-	                         "velocidad_base = ? " +  // ← agregá este campo
-	                         "WHERE nombre = ?";
+            e.printStackTrace();
 
-	            PreparedStatement ps = con.prepareStatement(sql);
-	            ps.setDouble(1, caballo.getEnergiaActual());
-	            ps.setDouble(2, caballo.getDistanciaRecorrida());
-	            ps.setDouble(3, caballo.getResistencia());
-	            ps.setDouble(4, caballo.getVelocidadBase());  // ← y este setter
-	            ps.setString(5, caballo.getNombre());
-
-	            ps.executeUpdate();
-
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
-	    }
-	    	
-}
-
-	    
+        }
 
         return jugadores;
     }
+}
