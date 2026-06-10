@@ -3,6 +3,7 @@ package View;
 import Controlador.ControllerJugador;
 import Controlador.controllerCarrera;
 import Modelo1.Caballo;
+import Modelo1.Carrera;
 import repositorio.carrerarepositorio;
 import repositorio.jugadorrepositorio;
 
@@ -16,6 +17,9 @@ import java.util.Map;
 
 import repositorio.carrerarepositorio;
 import repositorio.jugadorrepositorio;
+import repositorio.ICaballoRepositorio;
+import repositorio.ICarreraRepositorio;
+import repositorio.IJugadorRepositorio;
 import repositorio.caballorepositorio; 
 public class VentanaCarrera extends JFrame {
 
@@ -24,9 +28,9 @@ public class VentanaCarrera extends JFrame {
     private ControllerJugador  ctrlJugador;
 
    
-    private carrerarepositorio repoCarrera;
-    private jugadorrepositorio repoJugador;
-    private caballorepositorio repoCaballo; 
+    private ICarreraRepositorio repoCarrera;
+    private IJugadorRepositorio repoJugador;
+    private ICaballoRepositorio repoCaballo; 
 
     
     private double distanciaTotal;
@@ -276,14 +280,14 @@ public class VentanaCarrera extends JFrame {
 
        
         try {
-            repoCarrera.guardar(ctrlCarrera.getCarrera());
+        	repoCarrera.guardar((Carrera) ctrlCarrera.getCarrera());
             repoJugador.guardarJugador(ctrlJugador.getJugador());
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
         try {
-            repoCarrera.guardar(ctrlCarrera.getCarrera());
+        	repoCarrera.guardar((Carrera) ctrlCarrera.getCarrera());
             repoJugador.guardarJugador(ctrlJugador.getJugador());
 
            
@@ -528,5 +532,7 @@ public class VentanaCarrera extends JFrame {
             
         }
     }
+}
+
 }
 
