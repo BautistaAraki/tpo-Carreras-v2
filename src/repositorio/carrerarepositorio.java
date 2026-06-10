@@ -9,7 +9,7 @@ import Modelo1.Carrera;
 import Modelo1.Caballo;
 import Modelo1.jugador;
 import database.conexionDB;
-public class carrerarepositorio {
+public class carrerarepositorio implements ICarreraRepositorio{
 	public void guardar(Carrera carrera) {
 
         try {
@@ -77,5 +77,8 @@ public class carrerarepositorio {
         return carreras;
     }
 	
+
+}
+
 
 }
