@@ -533,6 +533,3 @@ public class VentanaCarrera extends JFrame {
         }
     }
 }
-
-}
-
