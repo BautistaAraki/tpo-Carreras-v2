@@ -4,22 +4,15 @@ import java.util.List;
 import Dto.JugadorDTO;
 import Modelo1.Caballo;
 import Modelo1.Carrera;
+import Modelo1.ICarrera;
 import Modelo1.jugador;
 
 public class controllerCarrera {
 
-    private Carrera carrera;
+	private ICarrera carrera;  
 
-    public void crearCarrera(
-            double distancia,
-            List<Caballo> caballos,
-            jugador jugador) {
-
-        carrera = new Carrera(
-                distancia,
-                caballos,
-                jugador
-        );
+    public void crearCarrera(double distancia, List<Caballo> caballos, jugador jugador) {
+        carrera = new Carrera(distancia, caballos, jugador);  
     }
 
     public void iniciarCarrera() {
@@ -72,7 +65,7 @@ public class controllerCarrera {
         return null;
     }
 
-    public Carrera getCarrera() {
+    public ICarrera getCarrera() {
         return carrera;
     }
 }
