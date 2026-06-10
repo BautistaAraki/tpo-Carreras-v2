@@ -7,21 +7,24 @@ public class Caballo {
 	private Double energiaActual;
 	private Double distanciaRecorrida;
 	private String perfil;
-	public Caballo(
-	        String nombre,
-	        Double velocidadBase,
-	        Double resistencia,
-	        Double energiaActual,
-	        Double distanciaRecorrida,
-	        String perfil) {
+	private IPerfilCaballo estrategiaPerfil;
 
+	public Caballo(String nombre, Double velocidadBase, Double resistencia,
+	               Double energiaActual, Double distanciaRecorrida, String perfil) {
 	    this.nombre = nombre;
 	    this.velocidadBase = velocidadBase;
 	    this.resistencia = resistencia;
 	    this.energiaActual = energiaActual;
 	    this.distanciaRecorrida = distanciaRecorrida;
 	    this.perfil = perfil;
-	}
+	
+	  
+	    switch (perfil) {
+	        case "Veloz":       this.estrategiaPerfil = new PerfilVeloz();       break;
+	        case "Resistente":  this.estrategiaPerfil = new PerfilResistente();  break;
+	        default:            this.estrategiaPerfil = new PerfilEquilibrado(); break;
+	    }
+}
 	public Caballo clonar() {
 	    return new Caballo(
 	        this.nombre,
@@ -33,19 +36,12 @@ public class Caballo {
 	    );
 	}
 	public void avanzar() {
-		    if (energiaActual > 0) {
-
-		        double random = 0.7 + (Math.random() * 0.6);
-
-		        Double avance = velocidadBase 
-		            * (energiaActual / resistencia) 
-		            * random;
-
-		        distanciaRecorrida = distanciaRecorrida + avance;
-
-		        disminuirEnergia();
-		    }
-		}
+	    if (energiaActual > 0) {
+	        double avance = estrategiaPerfil.calcularAvance(velocidadBase, energiaActual, resistencia);
+	        distanciaRecorrida = distanciaRecorrida + avance;
+	        disminuirEnergia();
+	    }
+	}
 	public void disminuirEnergia() {
 		energiaActual = energiaActual - 0.5;
 
@@ -96,6 +92,8 @@ public class Caballo {
 	    return resistencia;
 	}
 		
+		
+}
 		
 }
 
