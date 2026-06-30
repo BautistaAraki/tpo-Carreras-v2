@@ -1,19 +1,12 @@
 package View;
 
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.swing.*;
 
-public class main {
-	public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(
-                UIManager.getCrossPlatformLookAndFeelClassName());
-        } catch (Exception ignored) {}
- 
-        SwingUtilities.invokeLater(() -> {
-            VentanaPrincipal ventana = new VentanaPrincipal();
-            ventana.setVisible(true);
-        });
-	}
+public final class main {
+    private main() {}
+    public static void main(String[] args) {
+        try { UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName()); } catch (Exception ignored) {}
+        SwingUtilities.invokeLater(() -> new VentanaPrincipal().setVisible(true));
+    }
 }
 
