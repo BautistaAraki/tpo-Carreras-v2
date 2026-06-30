@@ -1,119 +1,30 @@
 package repositorio;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
+import Modelo1.Jugador;
+import database.JpaUtil;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 
-import Modelo1.jugador;
-import database.conexionDB;
-
-public class jugadorrepositorio  implements IJugadorRepositorio{
-
-    public void guardarJugador(jugador jugador) {
-
-        try {
-
-            Connection con =
-                    conexionDB.obtenerConexion();
-
-            String sql =
-                    "INSERT INTO jugador(nombre, mail, puntaje) VALUES (?, ?, ?)";
-
-            PreparedStatement ps =
-                    con.prepareStatement(sql);
-
-            ps.setString(1, jugador.getnombre());
-            ps.setString(2, jugador.getmail());
-            ps.setInt(3, jugador.getPuntaje());
-
-            ps.executeUpdate();
-
-            System.out.println("Jugador guardado correctamente");
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
+public class JugadorRepositorio implements IJugadorRepositorio {
+    public Jugador guardar(Jugador jugador) {
+        try (EntityManager em = JpaUtil.crearEntityManager()) {
+            EntityTransaction tx = em.getTransaction();
+            try {
+                tx.begin();
+                Jugador resultado;
+                if (jugador.getId() == null) { em.persist(jugador); resultado = jugador; }
+                else resultado = em.merge(jugador);
+                tx.commit();
+                return resultado;
+            } catch (RuntimeException ex) { if (tx.isActive()) tx.rollback(); throw ex; }
         }
     }
-
-    public jugador buscarPorMail(String mail) {
-
-        jugador jugadorEncontrado = null;
-
-        try {
-
-            Connection con =
-                    conexionDB.obtenerConexion();
-
-            String sql =
-                    "SELECT * FROM jugador WHERE mail = ?";
-
-            PreparedStatement ps =
-                    con.prepareStatement(sql);
-
-            ps.setString(1, mail);
-
-            ResultSet rs =
-                    ps.executeQuery();
-
-            if (rs.next()) {
-
-                jugadorEncontrado =
-                        new jugador(
-                                rs.getString("nombre"),
-                                rs.getString("mail")
-                        );
-
-            }
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
+    public Optional<Jugador> buscarPorMail(String mail) {
+        try (EntityManager em = JpaUtil.crearEntityManager()) {
+            return em.createQuery("select j from Jugador j where lower(j.mail) = lower(:mail)", Jugador.class)
+                    .setParameter("mail", mail.trim()).getResultStream().findFirst();
         }
-
-        return jugadorEncontrado;
-    }
-
-    public List<jugador> listarTodos() {
-
-        List<jugador> jugadores =
-                new ArrayList<>();
-
-        try {
-
-            Connection con =
-                    conexionDB.obtenerConexion();
-
-            String sql =
-                    "SELECT * FROM jugador";
-
-            PreparedStatement ps =
-                    con.prepareStatement(sql);
-
-            ResultSet rs =
-                    ps.executeQuery();
-
-            while (rs.next()) {
-
-                jugador jugador =
-                        new jugador(
-                                rs.getString("nombre"),
-                                rs.getString("mail")
-                        );
-
-                jugadores.add(jugador);
-            }
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
-        }
-
-        return jugadores;
     }
 }
+
