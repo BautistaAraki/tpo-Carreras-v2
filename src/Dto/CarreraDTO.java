@@ -1,24 +1,6 @@
 package Dto;
 
-public class CarreraDTO {
-	private double distanciaTotal;
-    private boolean finalizada;
+import java.util.List;
 
-    public CarreraDTO() {
-    }
-
-    public CarreraDTO(double distanciaTotal, boolean finalizada) {
-        this.distanciaTotal = distanciaTotal;
-        this.finalizada = finalizada;
-    }
-
-    public double getDistanciaTotal() {
-        return distanciaTotal;
-    }
-
-    public boolean isFinalizada() {
-        return finalizada;
-    }
-
-
-}
+public record CarreraDTO(double distanciaTotal, boolean finalizada, List<CaballoDTO> caballos,
+        String ganador, int puntosObtenidos, int puntajeTotal) {}
