@@ -1,84 +1,17 @@
 package repositorio;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
 
 import Modelo1.Carrera;
-import Modelo1.Caballo;
-import Modelo1.jugador;
-import database.conexionDB;
-public class carrerarepositorio implements ICarreraRepositorio{
-	public void guardar(Carrera carrera) {
+import database.JpaUtil;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 
-        try {
-
-            Connection con =
-                    conexionDB.obtenerConexion();
-
-            String sql =
-                    "INSERT INTO carrera(distancia_total, finalizada) VALUES (?, ?)";
-
-            PreparedStatement ps =
-                    con.prepareStatement(sql);
-
-            ps.setDouble(1, carrera.getDistanciaTotal());
-            ps.setBoolean(2, carrera.estaFinalizada());
-
-            ps.executeUpdate();
-
-            System.out.println("Carrera guardada correctamente");
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
+public class CarreraRepositorio implements ICarreraRepositorio {
+    public Carrera guardar(Carrera carrera) {
+        try (EntityManager em = JpaUtil.crearEntityManager()) {
+            EntityTransaction tx = em.getTransaction();
+            try { tx.begin(); em.persist(carrera); tx.commit(); return carrera; }
+            catch (RuntimeException ex) { if (tx.isActive()) tx.rollback(); throw ex; }
         }
     }
-
-    public List<Carrera> listarTodas() {
-
-        List<Carrera> carreras =
-                new ArrayList<>();
-
-        try {
-
-            Connection con =
-                    conexionDB.obtenerConexion();
-
-            String sql =
-                    "SELECT * FROM carrera";
-
-            PreparedStatement ps =
-                    con.prepareStatement(sql);
-
-            ResultSet rs =
-                    ps.executeQuery();
-
-            while (rs.next()) {
-
-                Carrera carrera =
-                        new Carrera(
-                                rs.getDouble("distancia_total"),
-                                new ArrayList<Caballo>(),
-                                null
-                        );
-
-                carreras.add(carrera);
-            }
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
-        }
-
-        return carreras;
-    }
-	
-
 }
 
-
-}
