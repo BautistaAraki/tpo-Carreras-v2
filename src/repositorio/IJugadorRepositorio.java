@@ -1,9 +1,9 @@
 package repositorio;
 
-import Modelo1.jugador;
-import java.util.List;
+import java.util.Optional;
+import Modelo1.Jugador;
+
 public interface IJugadorRepositorio {
-	void guardarJugador(jugador jugador);
-    jugador buscarPorMail(String mail);
-    List<jugador> listarTodos();
+    Jugador guardar(Jugador jugador);
+    Optional<Jugador> buscarPorMail(String mail);
 }
