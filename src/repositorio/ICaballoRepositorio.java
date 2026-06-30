@@ -1,9 +1,12 @@
 package repositorio;
-import Modelo1.Caballo;
+
 import java.util.List;
+import java.util.Optional;
+import Modelo1.Caballo;
+
 public interface ICaballoRepositorio {
-	void guardar(Caballo caballo);
-    void actualizar(Caballo caballo);
-    Caballo buscarPorNombre(String nombre);
+    Caballo guardar(Caballo caballo);
+    Caballo actualizar(Caballo caballo);
+    Optional<Caballo> buscarPorNombre(String nombre);
     List<Caballo> listarTodos();
 }
