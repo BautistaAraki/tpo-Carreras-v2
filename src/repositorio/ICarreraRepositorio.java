@@ -1,8 +1,5 @@
 package repositorio;
-import Modelo1.Carrera;
-import java.util.List;
 
-public interface ICarreraRepositorio {
-	void guardar(Carrera carrera);
-    List<Carrera> listarTodas();
-}
+import Modelo1.Carrera;
+
+public interface ICarreraRepositorio { Carrera guardar(Carrera carrera); }
