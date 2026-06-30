@@ -1,99 +1,76 @@
 package Modelo1;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "caballo")
 public class Caballo {
-	private String nombre;
-	private Double velocidadBase ;
-	private Double resistencia;
-	private Double energiaActual;
-	private Double distanciaRecorrida;
-	private String perfil;
-	private IPerfilCaballo estrategiaPerfil;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(nullable = false, unique = true, length = 80)
+    private String nombre;
+    @Column(name = "velocidad_base", nullable = false)
+    private double velocidadBase;
+    @Column(nullable = false)
+    private double resistencia;
+    @Column(name = "energia_actual", nullable = false)
+    private double energiaActual;
+    @Column(name = "distancia_recorrida", nullable = false)
+    private double distanciaRecorrida;
+    @Column(nullable = false, length = 20)
+    private String perfil;
+    @Transient
+    private IPerfilCaballo estrategiaPerfil;
 
-	public Caballo(String nombre, Double velocidadBase, Double resistencia,
-	               Double energiaActual, Double distanciaRecorrida, String perfil) {
-	    this.nombre = nombre;
-	    this.velocidadBase = velocidadBase;
-	    this.resistencia = resistencia;
-	    this.energiaActual = energiaActual;
-	    this.distanciaRecorrida = distanciaRecorrida;
-	    this.perfil = perfil;
-	
-	  
-	    switch (perfil) {
-	        case "Veloz":       this.estrategiaPerfil = new PerfilVeloz();       break;
-	        case "Resistente":  this.estrategiaPerfil = new PerfilResistente();  break;
-	        default:            this.estrategiaPerfil = new PerfilEquilibrado(); break;
-	    }
-}
-	public Caballo clonar() {
-	    return new Caballo(
-	        this.nombre,
-	        this.velocidadBase,
-	        this.resistencia,
-	        this.resistencia,  
-	        0.0,              
-	        this.perfil
-	    );
-	}
-	public void avanzar() {
-	    if (energiaActual > 0) {
-	        double avance = estrategiaPerfil.calcularAvance(velocidadBase, energiaActual, resistencia);
-	        distanciaRecorrida = distanciaRecorrida + avance;
-	        disminuirEnergia();
-	    }
-	}
-	public void disminuirEnergia() {
-		energiaActual = energiaActual - 0.5;
+    protected Caballo() {}
 
-	    if (energiaActual < 0) {
-	        energiaActual = 0.0;
-	    }
-	    resistencia = resistencia - 0.1;
-	    if (resistencia < 1.0) {
-	        resistencia = 1.0; 
-	    }
-		
-	    
-	}
-	public void aplicarDesgasteEntreCarreras() {
-	    
-	    resistencia = resistencia - 5.0;
-	    if (resistencia < 10.0) {
-	        resistencia = 10.0; 
-	    }
+    public Caballo(String nombre, double velocidadBase, double resistencia,
+                   double energiaActual, double distanciaRecorrida, String perfil) {
+        this.nombre = nombre;
+        this.velocidadBase = velocidadBase;
+        this.resistencia = resistencia;
+        this.energiaActual = energiaActual;
+        this.distanciaRecorrida = distanciaRecorrida;
+        this.perfil = perfil;
+        configurarPerfil();
+    }
 
-	    velocidadBase = velocidadBase - 0.5;
-	    if (velocidadBase < 2.0) {
-	        velocidadBase = 2.0;
-	    }
-	}
-	public void ReinciarAtributos() {
-		energiaActual=resistencia;
-		distanciaRecorrida=(double)0;
-		
-	}
-	public String getNombre() {
-		return nombre;
-	}
-	public Double getDistanciaRecorrida() {
-		return distanciaRecorrida;
-	}
-	public Double getEnergiaActual() {
-		return energiaActual;
-	}
-	public String getperfil() {
-		return perfil;
-	}
-	public Double getVelocidadBase() {
-	    return velocidadBase;
-	}
+    private void configurarPerfil() {
+        estrategiaPerfil = switch (perfil) {
+            case "Veloz" -> new PerfilVeloz();
+            case "Resistente" -> new PerfilResistente();
+            default -> new PerfilEquilibrado();
+        };
+    }
 
-	public Double getResistencia() {
-	    return resistencia;
-	}
-		
-		
-}
-		
+    public Caballo clonarParaCarrera() {
+        return new Caballo(nombre, velocidadBase, resistencia, resistencia, 0.0, perfil);
+    }
+
+    public void avanzar() {
+        if (energiaActual <= 0) return;
+        if (estrategiaPerfil == null) configurarPerfil();
+        distanciaRecorrida += estrategiaPerfil.calcularAvance(velocidadBase, energiaActual, resistencia);
+        energiaActual = Math.max(0, energiaActual - 0.5);
+    }
+
+    public void aplicarDesgasteEntreCarreras() {
+        resistencia = Math.max(10, resistencia - 5);
+        velocidadBase = Math.max(2, velocidadBase - 0.5);
+        reiniciarAtributos();
+    }
+
+    public void reiniciarAtributos() {
+        energiaActual = resistencia;
+        distanciaRecorrida = 0;
+    }
+
+    public Long getId() { return id; }
+    public String getNombre() { return nombre; }
+    public double getVelocidadBase() { return velocidadBase; }
+    public double getResistencia() { return resistencia; }
+    public double getEnergiaActual() { return energiaActual; }
+    public double getDistanciaRecorrida() { return distanciaRecorrida; }
+    public String getPerfil() { return perfil; }
 }
 
