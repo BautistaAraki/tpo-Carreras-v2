@@ -1,535 +1,290 @@
 package View;
 
-import Controlador.ControllerJugador;
-import Controlador.controllerCarrera;
-import Modelo1.Caballo;
-import Modelo1.Carrera;
-import repositorio.carrerarepositorio;
-import repositorio.jugadorrepositorio;
-
-import javax.swing.*;
-import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import javax.swing.*;
+import javax.swing.border.*;
+import Controlador.*;
+import Dto.*;
 
-import repositorio.carrerarepositorio;
-import repositorio.jugadorrepositorio;
-import repositorio.ICaballoRepositorio;
-import repositorio.ICarreraRepositorio;
-import repositorio.IJugadorRepositorio;
-import repositorio.caballorepositorio; 
-public class VentanaCarrera extends JFrame {
+public class VentanaPrincipal extends JFrame {
+    private final ControllerJugador jugadorController = ControllerJugador.getInstancia();
+    private final ControllerCarrera carreraController = ControllerCarrera.getInstancia();
 
-    
-    private controllerCarrera  ctrlCarrera;
-    private ControllerJugador  ctrlJugador;
+    private JTextField txtNombre;
+    private JTextField txtMail;
+    private JLabel lblPuntaje;
+    private JLabel lblUsuario;
+    private JButton btnAcceder;
+    private JButton btnCambiarUsuario;
+    private JButton btnAgregarCaballo;
+    private JButton btnIniciarCarrera;
+    private JSpinner spinnerDistancia;
+    private JList<String> listaCaballos;
+    private DefaultListModel<String> modeloCaballos;
+    private JTextArea areaInfoCaballo;
+    private List<CaballoDTO> caballosDisponibles = List.of();
 
-   
-    private ICarreraRepositorio repoCarrera;
-    private IJugadorRepositorio repoJugador;
-    private ICaballoRepositorio repoCaballo; 
+    private static final Color C_BG = new Color(15, 15, 20);
+    private static final Color C_PANEL = new Color(25, 25, 35);
+    private static final Color C_CARD = new Color(35, 35, 50);
+    private static final Color C_ACCENT = new Color(212, 175, 55);
+    private static final Color C_ACCENT2 = new Color(180, 100, 20);
+    private static final Color C_TEXT = new Color(230, 225, 210);
+    private static final Color C_MUTED = new Color(130, 125, 110);
+    private static final Color C_GREEN = new Color(80, 200, 120);
 
-    
-    private double distanciaTotal;
-    private List<Caballo> caballos;
-    
-    private Timer timer;
-    private static final int DELAY_MS = 90;  
-
-    private PistaPanel pistaPanel;
-    private JLabel     lblEstado;
-    private JLabel     lblGanador;
-    private JLabel     lblPuntaje;
-    private JButton    btnVolver;
-    private JButton    btnReiniciar;
-
-    
-    private static final Color C_BG      = new Color(10, 20, 10);
-    private static final Color C_PANEL   = new Color(18, 32, 18);
-    private static final Color C_CARD    = new Color(25, 42, 25);
-    private static final Color C_ACCENT  = new Color(212, 175, 55);
-    private static final Color C_ACCENT2 = new Color(140, 100, 20);
-    private static final Color C_TEXT    = new Color(230, 225, 210);
-    private static final Color C_MUTED   = new Color(120, 130, 110);
-    private static final Color C_GREEN   = new Color(80, 200, 120);
-    private static final Color C_RED     = new Color(220, 80, 80);
-
-    
-    private static final Color[] HORSE_COLORS = {
-        new Color(220, 160, 50),
-        new Color(80,  160, 220),
-        new Color(200, 80,  80),
-        new Color(80,  200, 120),
-        new Color(180, 80,  200)
-    };
-
-    
-    public VentanaCarrera(
-            controllerCarrera ctrlCarrera,
-            ControllerJugador ctrlJugador,
-            double distanciaTotal,
-            List<Caballo> caballos) {
-
-        this.ctrlCarrera    = ctrlCarrera;
-        this.ctrlJugador    = ctrlJugador;
-        this.distanciaTotal = distanciaTotal;
-        this.caballos       = caballos;
-
-        repoCarrera = new carrerarepositorio();
-        repoJugador = new jugadorrepositorio();
-        repoCaballo = new caballorepositorio();
-
+    public VentanaPrincipal() {
         configurarVentana();
         construirUI();
-        iniciarAnimacion();
+        cargarCaballos();
+        if (jugadorController.haySesionActiva()) autenticar(jugadorController.obtenerJugadorActual());
     }
 
-    
     private void configurarVentana() {
-        setTitle("🏁 Carrera en curso");
-        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        setSize(920, 600);
+        setTitle("Sistema de Carreras");
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        setSize(880, 680);
         setLocationRelativeTo(null);
         setResizable(false);
         getContentPane().setBackground(C_BG);
-
         addWindowListener(new WindowAdapter() {
             @Override public void windowClosing(WindowEvent e) {
-                if (timer != null) timer.stop();
+                jugadorController.cerrarAplicacion();
+                dispose();
                 System.exit(0);
             }
         });
     }
 
-    
     private void construirUI() {
-        setLayout(new BorderLayout(0, 0));
-        add(crearHeader(),  BorderLayout.NORTH);
-        add(crearPista(),   BorderLayout.CENTER);
-        add(crearFooter(),  BorderLayout.SOUTH);
+        setLayout(new BorderLayout());
+        add(crearHeader(), BorderLayout.NORTH);
+        add(crearCuerpo(), BorderLayout.CENTER);
+        add(crearFooter(), BorderLayout.SOUTH);
     }
 
     private JPanel crearHeader() {
-        JPanel h = new JPanel(new BorderLayout()) {
+        JPanel header = new JPanel(new BorderLayout()) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g;
-                g2.setColor(new Color(10, 30, 10));
+                g2.setPaint(new GradientPaint(0, 0, new Color(40, 30, 5), getWidth(), 0, new Color(20, 15, 5)));
                 g2.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        h.setPreferredSize(new Dimension(0, 60));
-        h.setBorder(new MatteBorder(0, 0, 2, 0, C_ACCENT));
-        h.setOpaque(false);
-
-        JLabel titulo = new JLabel("  🏇  CARRERA EN VIVO");
-        titulo.setFont(new Font("Serif", Font.BOLD, 22));
+        header.setOpaque(false);
+        header.setPreferredSize(new Dimension(0, 75));
+        header.setBorder(new MatteBorder(0, 0, 2, 0, C_ACCENT));
+        JLabel titulo = new JLabel("  CARRERA DE CABALLOS");
+        titulo.setFont(new Font("Serif", Font.BOLD, 26));
         titulo.setForeground(C_ACCENT);
-
-        lblEstado = new JLabel("EN CURSO...  ");
-        lblEstado.setFont(new Font("Monospaced", Font.BOLD, 14));
-        lblEstado.setForeground(C_GREEN);
-
-        h.add(titulo,    BorderLayout.WEST);
-        h.add(lblEstado, BorderLayout.EAST);
-        return h;
-    }
-
-    private JPanel crearPista() {
-        JPanel contenedor = new JPanel(new BorderLayout(0, 10));
-        contenedor.setBackground(C_BG);
-        contenedor.setBorder(new EmptyBorder(12, 12, 8, 12));
-
-        pistaPanel = new PistaPanel();
-        contenedor.add(pistaPanel, BorderLayout.CENTER);
-
-        
-        contenedor.add(crearPanelPosiciones(), BorderLayout.EAST);
-
-        return contenedor;
-    }
-
-    private JPanel crearPanelPosiciones() {
-        JPanel p = new JPanel();
-        p.setBackground(C_CARD);
-        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        p.setBorder(new CompoundBorder(
-            new LineBorder(C_ACCENT2, 1),
-            new EmptyBorder(10, 10, 10, 10)));
-        p.setPreferredSize(new Dimension(190, 0));
-
-        JLabel titulo = new JLabel("POSICIONES");
-        titulo.setForeground(C_ACCENT);
-        titulo.setFont(new Font("Monospaced", Font.BOLD, 12));
-        titulo.setAlignmentX(LEFT_ALIGNMENT);
-        p.add(titulo);
-        p.add(Box.createVerticalStrut(8));
-
-        for (int i = 0; i < caballos.size(); i++) {
-            Caballo c = caballos.get(i);
-            boolean esJugador = c.equals(ctrlJugador.obtenerCaballoSeleccionado());
-
-            JLabel lbl = new JLabel(labelCaballo(c, esJugador));
-            lbl.setForeground(HORSE_COLORS[i % HORSE_COLORS.length]);
-            lbl.setFont(new Font("Monospaced", Font.PLAIN, 11));
-            lbl.setAlignmentX(LEFT_ALIGNMENT);
-            lbl.setName("pos_" + i);
-            p.add(lbl);
-            p.add(Box.createVerticalStrut(4));
-        }
-
-        p.add(Box.createVerticalGlue());
-
-        
-        lblGanador = new JLabel(" ");
-        lblGanador.setForeground(C_ACCENT);
-        lblGanador.setFont(new Font("Monospaced", Font.BOLD, 11));
-        lblGanador.setAlignmentX(LEFT_ALIGNMENT);
-
-        lblPuntaje = new JLabel(" ");
+        JPanel estado = new JPanel(new GridLayout(2, 1));
+        estado.setOpaque(false);
+        lblUsuario = new JLabel("SIN USUARIO  ", SwingConstants.RIGHT);
+        lblUsuario.setForeground(C_TEXT);
+        lblPuntaje = new JLabel("PUNTAJE: 0  ", SwingConstants.RIGHT);
+        lblPuntaje.setFont(new Font("Monospaced", Font.BOLD, 15));
         lblPuntaje.setForeground(C_GREEN);
-        lblPuntaje.setFont(new Font("Monospaced", Font.BOLD, 12));
-        lblPuntaje.setAlignmentX(LEFT_ALIGNMENT);
+        estado.add(lblUsuario);
+        estado.add(lblPuntaje);
+        header.add(titulo, BorderLayout.WEST);
+        header.add(estado, BorderLayout.EAST);
+        return header;
+    }
 
-        p.add(new JSeparator() {{ setForeground(C_ACCENT2); setMaximumSize(new Dimension(170, 2)); }});
-        p.add(Box.createVerticalStrut(6));
-        p.add(lblGanador);
-        p.add(Box.createVerticalStrut(4));
-        p.add(lblPuntaje);
+    private JPanel crearCuerpo() {
+        JPanel cuerpo = new JPanel(new GridLayout(1, 2, 12, 0));
+        cuerpo.setBackground(C_BG);
+        cuerpo.setBorder(new EmptyBorder(14, 14, 14, 14));
+        cuerpo.add(crearPanelJugador());
+        cuerpo.add(crearPanelCaballos());
+        return cuerpo;
+    }
 
-        return p;
+    private JPanel crearPanelJugador() {
+        JPanel panel = crearCard();
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(6, 10, 6, 10);
+        g.fill = GridBagConstraints.HORIZONTAL;
+        g.weightx = 1;
+        g.gridx = 0; g.gridy = 0; g.gridwidth = 2;
+        panel.add(tituloSeccion("ACCESO DEL JUGADOR"), g);
+
+        txtNombre = campo();
+        txtMail = campo();
+        g.gridy = 1; g.gridwidth = 1; g.weightx = .35; panel.add(label("Nombre"), g);
+        g.gridx = 1; g.weightx = .65; panel.add(txtNombre, g);
+        g.gridx = 0; g.gridy = 2; g.weightx = .35; panel.add(label("Mail"), g);
+        g.gridx = 1; g.weightx = .65; panel.add(txtMail, g);
+
+        btnAcceder = boton("INGRESAR / CREAR CUENTA", C_ACCENT, C_BG);
+        btnAcceder.addActionListener(e -> accionAcceder());
+        g.gridx = 0; g.gridy = 3; g.gridwidth = 2; g.insets = new Insets(12, 10, 4, 10);
+        panel.add(btnAcceder, g);
+
+        btnCambiarUsuario = boton("CAMBIAR USUARIO", C_MUTED, C_BG);
+        btnCambiarUsuario.setEnabled(false);
+        btnCambiarUsuario.addActionListener(e -> accionCambiarUsuario());
+        g.gridy = 4; g.insets = new Insets(4, 10, 10, 10); panel.add(btnCambiarUsuario, g);
+
+        g.gridy = 5; panel.add(new JSeparator(), g);
+        g.gridy = 6; panel.add(tituloSeccion("CONFIGURACIÓN DE PISTA"), g);
+        spinnerDistancia = new JSpinner(new SpinnerNumberModel(100, 50, 500, 50));
+        g.gridy = 7; g.gridwidth = 1; g.weightx = .55; panel.add(label("Distancia (metros)"), g);
+        g.gridx = 1; g.weightx = .45; panel.add(spinnerDistancia, g);
+
+        areaInfoCaballo = new JTextArea(6, 20);
+        areaInfoCaballo.setEditable(false);
+        areaInfoCaballo.setBackground(new Color(20, 20, 30));
+        areaInfoCaballo.setForeground(C_TEXT);
+        areaInfoCaballo.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        areaInfoCaballo.setBorder(new EmptyBorder(8, 8, 8, 8));
+        areaInfoCaballo.setText("Ningún caballo seleccionado");
+        g.gridx = 0; g.gridy = 8; g.gridwidth = 2; g.weighty = 1; g.fill = GridBagConstraints.BOTH;
+        panel.add(new JScrollPane(areaInfoCaballo), g);
+        return panel;
+    }
+
+    private JPanel crearPanelCaballos() {
+        JPanel panel = crearCard();
+        panel.setLayout(new BorderLayout(0, 8));
+        panel.add(tituloSeccion("CABALLOS DISPONIBLES"), BorderLayout.NORTH);
+        modeloCaballos = new DefaultListModel<>();
+        listaCaballos = new JList<>(modeloCaballos);
+        listaCaballos.setBackground(new Color(20, 20, 30));
+        listaCaballos.setForeground(C_TEXT);
+        listaCaballos.setFont(new Font("Monospaced", Font.PLAIN, 13));
+        listaCaballos.setSelectionBackground(C_ACCENT2);
+        listaCaballos.setSelectionForeground(Color.WHITE);
+        listaCaballos.setFixedCellHeight(36);
+        listaCaballos.setEnabled(false);
+        listaCaballos.addListSelectionListener(e -> { if (!e.getValueIsAdjusting()) accionSeleccionarCaballo(); });
+        panel.add(new JScrollPane(listaCaballos), BorderLayout.CENTER);
+
+        btnAgregarCaballo = boton("AGREGAR CABALLO", C_ACCENT, C_BG);
+        btnAgregarCaballo.setEnabled(false);
+        btnAgregarCaballo.addActionListener(e -> accionAgregarCaballo());
+        btnIniciarCarrera = boton("INICIAR CARRERA", C_GREEN, C_BG);
+        btnIniciarCarrera.setEnabled(false);
+        btnIniciarCarrera.addActionListener(e -> accionIniciarCarrera());
+        JPanel botones = new JPanel(new GridLayout(2, 1, 0, 6));
+        botones.setBackground(C_CARD);
+        botones.add(btnAgregarCaballo);
+        botones.add(btnIniciarCarrera);
+        panel.add(botones, BorderLayout.SOUTH);
+        return panel;
     }
 
     private JPanel crearFooter() {
-        JPanel footer = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 8));
-        footer.setBackground(new Color(10, 25, 10));
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        footer.setBackground(new Color(20, 15, 5));
         footer.setBorder(new MatteBorder(1, 0, 0, 0, C_ACCENT2));
-
-        btnReiniciar = crearBoton("↺  NUEVA CARRERA", C_ACCENT2, C_TEXT);
-        btnReiniciar.setEnabled(false);
-        btnReiniciar.addActionListener(e -> accionNuevaCarrera());
-
-        btnVolver = crearBoton("← VOLVER AL MENÚ", C_MUTED, C_BG);
-        btnVolver.addActionListener(e -> accionVolver());
-
-        footer.add(btnReiniciar);
-        footer.add(btnVolver);
+        JLabel texto = new JLabel("MVC + DTO + Singleton + JPA/Hibernate");
+        texto.setForeground(C_MUTED);
+        footer.add(texto);
         return footer;
     }
 
-    
-    private void iniciarAnimacion() {
-        timer = new Timer(DELAY_MS, e -> tick());
-        timer.start();
-    }
-
-    private void tick() {
-                ctrlCarrera.simularTurno();
-        
-        for (Caballo c : ctrlCarrera.obtenerCaballos()) {
-            System.out.println(c.getNombre() + 
-                " | dist: " + c.getDistanciaRecorrida() + 
-                " | energia: " + c.getEnergiaActual());
-        }
-        System.out.println("Finalizada: " + ctrlCarrera.carreraFinalizada());
-        System.out.println("---");
-        pistaPanel.repaint();
-
-        
-        actualizarPosiciones();
-
-        
-        if (ctrlCarrera.carreraFinalizada()) {
-            timer.stop();
-            finalizarCarrera();
-        }
-    }
-
-    private void actualizarPosiciones() {
-        
-        Container panelPos = (Container) ((BorderLayout) ((JPanel) getContentPane()
-            .getComponent(1)).getLayout())
-            .getLayoutComponent(BorderLayout.EAST);
-
-        if (panelPos == null) return;
-
-        int idx = 0;
-        for (Component comp : panelPos.getComponents()) {
-            if (comp instanceof JLabel) {
-                JLabel lbl = (JLabel) comp;
-                if (lbl.getName() != null && lbl.getName().startsWith("pos_")) {
-                    int i = Integer.parseInt(lbl.getName().substring(4));
-                    if (i < caballos.size()) {
-                        Caballo c = caballos.get(i);
-                        boolean esJugador = c.equals(ctrlJugador.obtenerCaballoSeleccionado());
-                        lbl.setText(labelCaballo(c, esJugador));
-                    }
-                }
-            }
-        }
-    }
-
-    private void finalizarCarrera() {
-    	Caballo ganador   = ctrlCarrera.obtenerGanador();
-        int puntaje       = ctrlCarrera.calcularPuntajeJugador();
-
-        
-        ctrlJugador.getJugador().sumarPuntos(puntaje);
-
-       
-        try {
-        	repoCarrera.guardar((Carrera) ctrlCarrera.getCarrera());
-            repoJugador.guardarJugador(ctrlJugador.getJugador());
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-        try {
-        	repoCarrera.guardar((Carrera) ctrlCarrera.getCarrera());
-            repoJugador.guardarJugador(ctrlJugador.getJugador());
-
-           
-            for (Caballo c : ctrlCarrera.obtenerCaballos()) {
-                repoCaballo.actualizar(c);
-            }
-            for (Caballo c : caballos) {
-                c.aplicarDesgasteEntreCarreras();
-                repoCaballo.actualizar(c);
-            }
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        lblEstado.setText("FINALIZADA  ");
-        lblEstado.setForeground(C_ACCENT);
-        lblGanador.setText("🏆 " + (ganador != null ? ganador.getNombre() : "?"));
-        lblPuntaje.setText("+" + puntaje + " pts  →  "
-            + ctrlJugador.obtenerPuntaje() + " total");
-        btnReiniciar.setEnabled(true);
-
-       
-        Caballo caballoJugador = ctrlJugador.obtenerCaballoSeleccionado();
-        String nombreCaballo   = caballoJugador != null ? caballoJugador.getNombre() : "?";
-        boolean empato         = puntaje == 75;
-        boolean gano           = puntaje == 100;
-
-        String titulo;
-        String mensaje;
-
-        if (empato) {
-            titulo  = "¡Empate!";
-            mensaje = "¡EMPATE!\n"
-                    + "\nTu caballo llegó al mismo tiempo que otro."
-                    + "\nPuntos obtenidos: +" + puntaje
-                    + "\nPuntaje total: " + ctrlJugador.obtenerPuntaje();
-        } else if (gano) {
-            titulo  = "¡Victoria!";
-            mensaje = "¡GANASTE!\n"
-                    + "\nGanador: " + (ganador != null ? ganador.getNombre() : "?")
-                    + "\nTu caballo: " + nombreCaballo
-                    + "\nPuntos obtenidos: +" + puntaje
-                    + "\nPuntaje total: " + ctrlJugador.obtenerPuntaje();
-        } else {
-            titulo  = "Resultado final";
-            mensaje = "Tu caballo no ganó esta vez.\n"
-                    + "\nGanador: " + (ganador != null ? ganador.getNombre() : "?")
-                    + "\nTu caballo: " + nombreCaballo
-                    + "\nPuntos obtenidos: +" + puntaje
-                    + "\nPuntaje total: " + ctrlJugador.obtenerPuntaje();
-        }
-
-        
-        SwingUtilities.invokeLater(() -> {
-            JOptionPane.showMessageDialog(
-                this,
-                mensaje,
-                titulo,
-                JOptionPane.INFORMATION_MESSAGE
-            );
+    private void accionAcceder() {
+        ejecutar(() -> {
+            JugadorDTO jugador = jugadorController.ingresarORegistrar(txtNombre.getText(), txtMail.getText());
+            autenticar(jugador);
         });
-
-        pistaPanel.repaint();
-    }
-        	
-
-   
-    private void accionNuevaCarrera() {
-       
-        ctrlCarrera.crearCarrera(
-            distanciaTotal,
-            caballos,
-            ctrlJugador.getJugador()
-        );
-        ctrlCarrera.iniciarCarrera();
-
-        lblEstado.setText("EN CURSO...  ");
-        lblEstado.setForeground(C_GREEN);
-        lblGanador.setText(" ");
-        lblPuntaje.setText(" ");
-        btnReiniciar.setEnabled(false);
-
-        iniciarAnimacion();
     }
 
-    private void accionVolver() {
-        if (timer != null) timer.stop();
-        dispose();
-        new VentanaPrincipal(ctrlJugador).setVisible(true);
+    private void autenticar(JugadorDTO jugador) {
+        txtNombre.setText(jugador.nombre());
+        txtMail.setText(jugador.mail());
+        txtNombre.setEnabled(false);
+        txtMail.setEnabled(false);
+        btnAcceder.setEnabled(false);
+        btnCambiarUsuario.setEnabled(true);
+        btnAgregarCaballo.setEnabled(true);
+        listaCaballos.setEnabled(true);
+        lblUsuario.setText(jugador.nombre().toUpperCase() + "  ");
+        lblPuntaje.setText("PUNTAJE: " + jugador.puntaje() + "  ");
+        cargarCaballos();
     }
 
-    
-    private String labelCaballo(Caballo c, boolean esJugador) {
-        double pct = Math.min(100.0,
-            (c.getDistanciaRecorrida() / distanciaTotal) * 100);
-        return String.format("%s%-10s %4.0f%%",
-            esJugador ? "★ " : "  ",
-            c.getNombre().length() > 9
-                ? c.getNombre().substring(0, 9) : c.getNombre(),
-            pct);
+    private void accionCambiarUsuario() {
+        jugadorController.cerrarSesion();
+        txtNombre.setText("");
+        txtMail.setText("");
+        txtNombre.setEnabled(true);
+        txtMail.setEnabled(true);
+        btnAcceder.setEnabled(true);
+        btnCambiarUsuario.setEnabled(false);
+        btnAgregarCaballo.setEnabled(false);
+        btnIniciarCarrera.setEnabled(false);
+        listaCaballos.clearSelection();
+        listaCaballos.setEnabled(false);
+        areaInfoCaballo.setText("Ningún caballo seleccionado");
+        lblUsuario.setText("SIN USUARIO  ");
+        lblPuntaje.setText("PUNTAJE: 0  ");
+        txtNombre.requestFocusInWindow();
     }
 
-    private JButton crearBoton(String texto, Color bg, Color fg) {
-        JButton b = new JButton(texto);
-        b.setBackground(bg);
-        b.setForeground(fg);
-        b.setFont(new Font("Monospaced", Font.BOLD, 12));
-        b.setFocusPainted(false);
-        b.setBorder(new CompoundBorder(
-            new LineBorder(bg.darker(), 1),
-            new EmptyBorder(7, 14, 7, 14)));
-        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        return b;
+    private void accionSeleccionarCaballo() {
+        int indice = listaCaballos.getSelectedIndex();
+        if (indice < 0 || !listaCaballos.isEnabled()) return;
+        ejecutar(() -> {
+            CaballoDTO caballo = caballosDisponibles.get(indice);
+            jugadorController.seleccionarCaballo(caballo.nombre());
+            areaInfoCaballo.setText("Nombre      : " + caballo.nombre() + "\nPerfil      : " + caballo.perfil()
+                    + "\nVelocidad   : " + caballo.velocidadBase() + "\nResistencia : " + caballo.resistencia());
+            btnIniciarCarrera.setEnabled(true);
+        });
     }
 
-    
-    private class PistaPanel extends JPanel {
+    private void accionAgregarCaballo() {
+        JTextField nombre = new JTextField();
+        JTextField velocidad = new JTextField();
+        JTextField resistencia = new JTextField();
+        JComboBox<String> perfil = new JComboBox<>(new String[]{"Veloz", "Resistente", "Equilibrado"});
+        Object[] campos = {"Nombre", nombre, "Velocidad", velocidad, "Resistencia", resistencia, "Perfil", perfil};
+        if (JOptionPane.showConfirmDialog(this, campos, "Registrar caballo", JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
+        ejecutar(() -> {
+            carreraController.registrarCaballo(new CaballoDTO(nombre.getText(), Double.parseDouble(velocidad.getText()),
+                    Double.parseDouble(resistencia.getText()), (String) perfil.getSelectedItem()));
+            cargarCaballos();
+        });
+    }
 
-        private static final int MARGEN_IZQ  = 100;
-        private static final int MARGEN_DER  = 30;
-        private static final int ALTO_CARRIL = 60;
-        private static final int PAD_VERT    = 10;
+    private void accionIniciarCarrera() {
+        ejecutar(() -> {
+            double distancia = ((Number) spinnerDistancia.getValue()).doubleValue();
+            carreraController.crearCarrera(distancia, caballosDisponibles.stream().map(CaballoDTO::nombre).toList());
+            new VentanaCarrera().setVisible(true);
+            setVisible(false);
+        });
+    }
 
-        public PistaPanel() {
-            setBackground(new Color(20, 50, 20));
-            setBorder(new LineBorder(C_ACCENT2, 1));
-        }
+    private void cargarCaballos() {
+        ejecutar(() -> {
+            caballosDisponibles = carreraController.listarCaballos();
+            modeloCaballos.clear();
+            caballosDisponibles.forEach(c -> modeloCaballos.addElement(String.format("%-14s [%s]", c.nombre(), c.perfil())));
+        });
+    }
 
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                                RenderingHints.VALUE_ANTIALIAS_ON);
-
-            int w = getWidth();
-            int h = getHeight();
-            int n = caballos.size();
-
-          
-            dibujarFondo(g2, w, h, n);
-
-            
-            int xMeta = w - MARGEN_DER;
-            g2.setColor(C_RED);
-            g2.setStroke(new BasicStroke(3, BasicStroke.CAP_BUTT,
-                BasicStroke.JOIN_MITER, 10, new float[]{8, 5}, 0));
-            g2.drawLine(xMeta, 0, xMeta, h);
-            g2.setStroke(new BasicStroke(1));
-
-            
-            g2.setColor(C_RED);
-            g2.setFont(new Font("Monospaced", Font.BOLD, 11));
-            g2.drawString("META", xMeta - 18, 14);
-
-            
-            int pistasAncho = w - MARGEN_IZQ - MARGEN_DER;
-            for (int i = 0; i < n; i++) {
-                Caballo c = caballos.get(i);
-                int cy = PAD_VERT + i * ALTO_CARRIL + ALTO_CARRIL / 2;
-
-                double progreso = Math.min(1.0,
-                    c.getDistanciaRecorrida() / distanciaTotal);
-                int cx = MARGEN_IZQ + (int)(progreso * pistasAncho);
-
-                Color color = HORSE_COLORS[i % HORSE_COLORS.length];
-                boolean esJugador = c.equals(ctrlJugador.obtenerCaballoSeleccionado());
-
-                dibujarCaballo(g2, cx, cy, color, c.getNombre(), esJugador);
-            }
-
-          
-            g2.setFont(new Font("Monospaced", Font.PLAIN, 10));
-            for (int i = 0; i < n; i++) {
-                Caballo c = caballos.get(i);
-                int cy = PAD_VERT + i * ALTO_CARRIL + ALTO_CARRIL / 2;
-                boolean esJugador = c.equals(ctrlJugador.obtenerCaballoSeleccionado());
-
-                g2.setColor(esJugador ? C_ACCENT : C_MUTED);
-                String tag = (esJugador ? "★ " : "  ") + c.getNombre();
-                g2.drawString(tag, 4, cy + 4);
-            }
-        }
-
-        private void dibujarFondo(Graphics2D g2, int w, int h, int n) {
-            for (int i = 0; i < n; i++) {
-                Color base = i % 2 == 0
-                    ? new Color(25, 60, 25)
-                    : new Color(20, 50, 20);
-                g2.setColor(base);
-                int y = PAD_VERT + i * ALTO_CARRIL;
-                g2.fillRect(0, y, w, ALTO_CARRIL);
-
-                g2.setColor(new Color(50, 80, 50));
-                g2.drawLine(0, y, w, y);
-            }
-
-            
-            g2.setColor(C_ACCENT2);
-            g2.setStroke(new BasicStroke(2));
-            g2.drawLine(MARGEN_IZQ, 0, MARGEN_IZQ, h);
-            g2.setStroke(new BasicStroke(1));
-        }
-
-        private void dibujarCaballo(Graphics2D g2, int cx, int cy,
-                                     Color color, String nombre,
-                                     boolean esJugador) {
-         
-            g2.setColor(new Color(0, 0, 0, 60));
-            g2.fillOval(cx - 16, cy + 12, 36, 8);
-
-            
-            g2.setColor(color);
-            
-            g2.fillOval(cx - 18, cy - 10, 36, 20);
-            
-            g2.fillOval(cx + 14, cy - 14, 16, 14);
-            
-            g2.fillRect(cx + 12, cy - 10, 6, 10);
-            
-            g2.fillRect(cx - 12, cy + 8, 5, 10);
-            g2.fillRect(cx - 2,  cy + 8, 5, 10);
-            g2.fillRect(cx + 8,  cy + 8, 5, 10);
-            g2.fillRect(cx + 17, cy + 6, 5, 10);
-            
-            g2.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2.drawArc(cx - 26, cy - 8, 14, 16, 270, 180);
-            g2.setStroke(new BasicStroke(1));
-
-           
-            if (esJugador) {
-                g2.setColor(C_ACCENT);
-                g2.setStroke(new BasicStroke(2));
-                g2.drawOval(cx - 19, cy - 11, 38, 22);
-                g2.setStroke(new BasicStroke(1));
-
-               
-                g2.setFont(new Font("Dialog", Font.PLAIN, 14));
-                g2.drawString("★", cx - 6, cy - 16);
-            }
-
-            
-        }
+    private JPanel crearCard() {
+        JPanel panel = new JPanel();
+        panel.setBackground(C_CARD);
+        panel.setBorder(new CompoundBorder(new LineBorder(C_ACCENT2, 1), new EmptyBorder(10, 10, 10, 10)));
+        return panel;
+    }
+    private JLabel label(String texto) { JLabel l = new JLabel(texto); l.setForeground(C_TEXT); return l; }
+    private JTextField campo() { JTextField c = new JTextField(); c.setBackground(new Color(20,20,30)); c.setForeground(C_TEXT); c.setCaretColor(C_TEXT); return c; }
+    private JLabel tituloSeccion(String texto) { JLabel l = new JLabel(texto); l.setForeground(C_ACCENT); l.setFont(new Font("Monospaced", Font.BOLD, 12)); return l; }
+    private JButton boton(String texto, Color fondo, Color frente) {
+        JButton b = new JButton(texto); b.setBackground(fondo); b.setForeground(frente); b.setFont(new Font("Monospaced", Font.BOLD, 12));
+        b.setFocusPainted(false); b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); return b;
+    }
+    private void ejecutar(Runnable accion) {
+        try { accion.run(); }
+        catch (Exception ex) { JOptionPane.showMessageDialog(this, ex.getMessage(), "Atención", JOptionPane.WARNING_MESSAGE); }
     }
 }
+
